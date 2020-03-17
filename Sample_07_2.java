@@ -27,6 +27,7 @@ public class Sample_07_2 extends JFrame {
        int myHeight, myWidth;
        int myX;
        int myMissileX, myMissileY;
+       boolean isMyMissileActive;
 
         public MyJPanel() {
            setBackground(Color.black);
@@ -41,6 +42,7 @@ public class Sample_07_2 extends JFrame {
            myHeight = imgMe.getHeight(this);
 
            myX = 400;
+           isMyMissileActive = false;
         }
 
         public void paintComponent(Graphics g) {
@@ -48,13 +50,17 @@ public class Sample_07_2 extends JFrame {
            super.paintComponent(g);
 
            if (myX+myWidth > dimOfPanel.width) {
-           myX = dimOfPanel.width - myWidth;
+               myX = dimOfPanel.width - myWidth;
            }
            g.drawImage(imgMe, myX, 400, this);
            
+           if (isMyMissileActive) {
            g.setColor(Color.white);
            g.fillRect(myMissileX, myMissileY, 2, 5);
            myMissileY -= 15;
+
+           if (myMissileY < 0) isMyMissileActive = false;
+           }
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -64,9 +70,12 @@ public class Sample_07_2 extends JFrame {
         public void mouseClicked(MouseEvent e)     {
         }
 
-        public void mousePressed(MouseEvent e)     {
+        public void mousePressed(MouseEvent e) {
+           if (!isMyMissileActive) {
            myMissileX = myX + myWidth/2;
            myMissileY = 400;
+           isMyMissileActive = true;
+           }
         }
 
         public void mouseReleased(MouseEvent e)    {
