@@ -18,8 +18,7 @@ public class Ex_05_1 extends JFrame {
        setVisible(true);
    }
 
-   public class MyJPanel extends JPanel
-                                  implements ActionListener {
+   public class MyJPanel extends JPanel implements ActionListener {
        JButton button;
        Dimension dim;
        Timer timer;
