@@ -1,17 +1,20 @@
+import java.io.File;
+import java.net.MalformedURLException;
+import javafx.scene.media.AudioClip;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-public class Ex_11_1601010010 extends JFrame {
+public class Ex_12_1601010010 extends JFrame {
     final int windowWidth = 500;                                                           //1・追加181226 背景画像取込
-    final int windowHeight = 700;
+    final int windowHeight = 750;
 
     public static void main(String[] args){
-        new Ex_11_1601010010();
+        new Ex_12_1601010010();
     }
 
-    public Ex_11_1601010010() {
+    public Ex_12_1601010010() {
         Dimension dimOfScreen = Toolkit.getDefaultToolkit().getScreenSize();
 
         setBounds(dimOfScreen.width/2 - windowWidth/2, 
@@ -34,13 +37,17 @@ public class Ex_11_1601010010 extends JFrame {
         Timer timer;
         ImageIcon iconMe, iconEnemy;
         Image imgMe, imgEnemy, bgImg, bgGameclear, bgGameover;                             //1・2・3追加181226 変数追加
+        AudioClip c;
 
         /* 自機に関する変数 */
         int myHeight, myWidth;
         int myX, myY, tempMyX;
         int gap = 100;
-        int myMissileX, myMissileY;
-        boolean isMyMissileActive;
+        int damage = 0;
+        int myMissileX, myMissileY, myMissile2X, myMissile2Y, myMissile3X, myMissile3Y;    //4ミサイル追加190110
+        boolean isMyMissileActive  = false;
+        boolean isMyMissileActive2 = false;
+        boolean isMyMissileActive3 = false;
 
         /* 敵機に関する変数 */
         int numOfEnemy = 12;
@@ -53,8 +60,7 @@ public class Ex_11_1601010010 extends JFrame {
         int[] enemyMissileY = new int[numOfEnemy];
         int[] enemyMissileSpeed = new int[numOfEnemy];
         boolean[] isEnemyAlive = new boolean[numOfEnemy];
-        boolean[] isEnemyMissileActive = 
-                                 new boolean[numOfEnemy];
+        boolean[] isEnemyMissileActive = new boolean[numOfEnemy];
 
         /* コンストラクタ（ゲーム開始時の初期化）*/
         public MyJPanel() {
@@ -70,9 +76,10 @@ public class Ex_11_1601010010 extends JFrame {
             add(button);
             add(endButton);
 
-            // 画像の取り込み
-            bgImg = getImg("BackGround.png");                                              //2・追加181226 背景画像取込 ok
-            bgGameclear = getImg("BackGround_GameClear.png");                              //3・追加181226 背景画像取込 ok
+            // 音源、画像の取り込み
+            c = new AudioClip(new File("Music for java report 12.mp3").toURI().toString());
+            bgImg = getImg("BackGround.png");                                              //2・追加181226 背景画像取込
+            bgGameclear = getImg("BackGround_GameClear.png");                              //3・追加181226 背景画像取込
             bgGameover = getImg("BackGround_GameOver.png");  
             imgMe = getImg("jiki2.png");
             myWidth = imgMe.getWidth(this);
@@ -93,21 +100,21 @@ public class Ex_11_1601010010 extends JFrame {
             super.paintComponent(g);
 
             // 各要素の描画
-            g.drawImage(bgImg, 0, 0,windowWidth,windowHeight, this);                       //2・追加181226 背景画像 ok
+            g.drawImage(bgImg, 0, 0,windowWidth,windowHeight, this);                       //2・追加181226 背景画像
             drawMyPlane(g);       // 自機
-            drawMyMissile(g);     // 自機のミサイル
+            drawMyMissile(g);     // 自機のミサイル                                          //4ミサイル追加190110
             drawEnemyPlane(g);    // 敵機
             drawEnemyMissile(g);  // 敵機のミサイル
 
             // 敵機を全機撃墜した時の終了処理
             if (numOfAlive == 0) {
                 timer.stop();
-                g.drawImage(bgGameclear, 0, 0,windowWidth,windowHeight, this);             //3・追加181226 GameClear ok
+                g.drawImage(bgGameclear, 0, 0,windowWidth,windowHeight, this);             //3・追加181226 GameClear
             }
         }
 
         /* 一定時間ごとの処理（ActionListener に対する処理）*/
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed(ActionEvent e) { 
         
             if (e.getSource() == endButton) {                                              //3・追加181226 Game終わり
                     System.exit(0);
@@ -116,9 +123,11 @@ public class Ex_11_1601010010 extends JFrame {
             if (e.getSource() == button) {
                 if (timer.isRunning()) {
                     timer.stop();
+                    c.stop();
                     button.setText("Start");
                 } else {
                     timer.start();
+                    c.play();
                     button.setText("Stop");
                   }
             }
@@ -137,6 +146,14 @@ public class Ex_11_1601010010 extends JFrame {
                 myMissileX = tempMyX + myWidth/2;
                 myMissileY = myY;
                 isMyMissileActive = true;
+            } else if (!isMyMissileActive2) {
+                myMissile2X = tempMyX + myWidth/2;
+                myMissile2Y = myY;
+                isMyMissileActive2 = true;
+            } else if (!isMyMissileActive3) {
+                myMissile3X = tempMyX + myWidth/2;
+                myMissile3Y = myY;
+                isMyMissileActive3 = true;
             }
         }
 
@@ -176,7 +193,9 @@ public class Ex_11_1601010010 extends JFrame {
             myX = windowWidth / 2;
             myY = windowHeight - 100;
             tempMyX = windowWidth / 2;
-            isMyMissileActive = false;
+            isMyMissileActive =  false;
+            isMyMissileActive2 = false;
+            isMyMissileActive3 = false;
         }
 
         /* 敵機の初期化 */
@@ -219,15 +238,27 @@ public class Ex_11_1601010010 extends JFrame {
             }
         }
 
-        /* 自機のミサイルの描画 */
+        /* 自機ミサイルの描画 */
         public void drawMyMissile(Graphics g) {
             if (isMyMissileActive) {
                 // ミサイルの配置
                 myMissileY -= 15;
                 g.setColor(Color.white);
                 g.fillRect(myMissileX, myMissileY, 2, 5);
-
-                // 自機のミサイルの敵機各機への当たり判定
+                };
+                if (isMyMissileActive2) {
+                // ミサイル2の配置
+                myMissile2Y -= 15;
+                g.setColor(Color.black);
+                g.fillRect(myMissile2X, myMissile2Y, 2, 5);
+                };
+                if (isMyMissileActive3) {
+                // ミサイル3の配置
+                myMissile3Y -= 15;
+                g.setColor(Color.gray);
+                g.fillRect(myMissile3X, myMissile3Y, 2, 5);
+                };
+                // 自機ミサイルの敵機各機への当たり判定
                 for (int i=0; i<numOfEnemy; i++) {
                     if (isEnemyAlive[i]) {
                         if ((myMissileX >= enemyX[i]) && 
@@ -240,10 +271,40 @@ public class Ex_11_1601010010 extends JFrame {
                         }
                     }
                 }
+                // 自機ミサイル2の敵機各機への当たり判定
+                for (int i=0; i<numOfEnemy; i++) {
+                    if (isEnemyAlive[i]) {
+                        if ((myMissile2X >= enemyX[i]) && 
+                            (myMissile2X <= enemyX[i]+enemyWidth) && 
+                            (myMissile2Y >= enemyY[i]) && 
+                            (myMissile2Y <= enemyY[i]+enemyHeight)) {
+                            isEnemyAlive[i] = false;
+                            isMyMissileActive2 = false;
+                            numOfAlive--;
+                        }
+                    }
+                }
+                // 自機ミサイル3の敵機各機への当たり判定
+                for (int i=0; i<numOfEnemy; i++) {
+                    if (isEnemyAlive[i]) {
+                        if ((myMissile3X >= enemyX[i]) && 
+                            (myMissile3X <= enemyX[i]+enemyWidth) && 
+                            (myMissile3Y >= enemyY[i]) && 
+                            (myMissile3Y <= enemyY[i]+enemyHeight)) {
+                            isEnemyAlive[i] = false;
+                            isMyMissileActive3 = false;
+                            numOfAlive--;
+                        }
+                    }
+                }
 
                 // ミサイルがウィンドウ外に出たときのミサイルの再初期化
-                if (myMissileY < 0) isMyMissileActive = false;
-            }
+                if (myMissileY < 0) isMyMissileActive =   false;
+                // ミサイル2がウィンドウ外に出たときのミサイルの再初期化
+                if (myMissile2Y < 0) isMyMissileActive2 = false;
+                // ミサイル3がウィンドウ外に出たときのミサイルの再初期化
+                if (myMissile3Y < 0) isMyMissileActive3 = false;
+            
         }
 
         /* 敵機の描画 */
@@ -257,8 +318,7 @@ public class Ex_11_1601010010 extends JFrame {
                         enemyMove[i] = 1;
                     }
                     enemyX[i] += enemyMove[i]*10;
-                    g.drawImage(imgEnemy, enemyX[i], 
-                                          enemyY[i], this);
+                    g.drawImage(imgEnemy, enemyX[i], enemyY[i], this);
                 }
             }
         }
@@ -270,16 +330,19 @@ public class Ex_11_1601010010 extends JFrame {
                 if (isEnemyMissileActive[i]) {
                     enemyMissileY[i] += enemyMissileSpeed[i];
                     g.setColor(Color.red);
-                    g.fillRect(enemyMissileX[i], 
-                               enemyMissileY[i], 2, 5);
+                    g.fillRect(enemyMissileX[i], enemyMissileY[i], 2, 5);
                 }
 
                 // 敵機ミサイルの自機への当たり判定
                 if ((enemyMissileX[i] >= tempMyX) && 
                     (enemyMissileX[i] <= tempMyX+myWidth) && 
                     (enemyMissileY[i]+5 >= myY) && 
-                    (enemyMissileY[i]+5 <= myY+myHeight)) {
-                    g.drawImage(bgGameover, 0, 0,windowWidth,windowHeight, this);
+                    (enemyMissileY[i]+5 <= myY+myHeight) &&
+                    (damage <= 4)){
+                    damage += 1;
+                    } else if(damage >= 4){
+                    g.drawImage(bgGameover, 0, 0,windowWidth,windowHeight, this);          //3・追加181226 GameOver
+                    c.stop();
                     timer.stop();
                 }
 
