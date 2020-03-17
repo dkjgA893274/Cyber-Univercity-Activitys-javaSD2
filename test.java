@@ -1,42 +1,40 @@
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
+import java.awt.BorderLayout;
+import javax.swing.event.*;
 
-public class test extends JFrame {
-    public static void main(String[] args){
-        new test();
-    }
+public class test extends JFrame implements ChangeListener{
 
-    public test() {
-        setSize(400, 300);
-        setTitle("Software Development II");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+  JSlider slider;
+  JLabel label;
 
-        MyJPanel panel= new MyJPanel();
-        Container c = getContentPane();
-        c.add(panel);
-        setVisible(true);
-    }
+  public static void main(String[] args){
+    test frame = new test();
 
-    public class MyJPanel extends JPanel implements ActionListener {
-        Timer timer;
-        int x = 0;
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setBounds(10, 10, 300, 200);
+    frame.setTitle("タイトル");
+    frame.setVisible(true);
+  }
 
-        public MyJPanel() {
-            timer = new Timer(1000, this);
-            timer.start();
-        }
+  test(){
 
-        public void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            g.fillOval(x, 120, 50, 20);
-        }
+    slider = new JSlider();
+    slider.setMajorTickSpacing(10);
+    slider.setMinorTickSpacing(2);
+    slider.setPaintTicks(true);
+    slider.addChangeListener(this);
 
-        public void actionPerformed(ActionEvent e) {
-            x = x + 2;
-            if (x > 300) timer.stop();
+    JPanel p = new JPanel();
+    
 
-            repaint();
-        }
-    }
+    label = new JLabel();
+    label.setText("値：" + slider.getValue());
+
+    getContentPane().add(p, BorderLayout.CENTER);
+    getContentPane().add(label, BorderLayout.PAGE_END);
+  }
+
+  public void stateChanged(ChangeEvent e) {
+    label.setText("値：" + slider.getValue());
+  }
 }
