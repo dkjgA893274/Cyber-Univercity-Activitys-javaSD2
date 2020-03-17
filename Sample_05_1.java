@@ -32,7 +32,7 @@ public class Sample_05_1 extends JFrame {
         }
 
         public void actionPerformed(ActionEvent e) {
-            label.setText(sec + " •b");
+            label.setText(sec + " ç§’");
 
             if (sec >= 100) timer.stop();
             else            sec++;
